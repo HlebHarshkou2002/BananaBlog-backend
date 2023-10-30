@@ -1,4 +1,5 @@
 import express from "express";
+import fs from 'fs';
 import mongoose from "mongoose";
 import multer from "multer";
 import cors from "cors";
@@ -7,11 +8,11 @@ import cors from "cors";
 import { registerValidator } from './validators/auth.js';
 import { loginValidator } from "./validators/login.js";
 import { postCreateValidation } from "./validators/post.js";
-import { handleValidationErrors, checkAuth} from "./utils/index.js";
+import { handleValidationErrors, checkAuth } from "./utils/index.js";
 
 
 //Controllers
-import {UserController, PostController} from './constrollers/index.js';
+import { UserController, PostController } from './constrollers/index.js';
 
 mongoose.connect(
     process.env.MONGODB_URI
@@ -26,6 +27,9 @@ const app = express();
 //Хранилище для картинок
 const storage = multer.diskStorage({
     destination: (_, __, cb) => {
+        if (!fs.existsSync('uploads')) {
+            fs.mkdirSync('uploads');
+        }
         cb(null, 'uploads');
     },
     filename: (_, file, cb) => {
@@ -42,8 +46,8 @@ app.use(cors());
 app.use('/uploads', express.static('uploads')); // express.static означает что мы делаем get запрос на получение статичного файла
 
 //Auth
-app.post('/auth/login',  loginValidator, handleValidationErrors, UserController.login)
-app.post('/auth/register',  registerValidator, handleValidationErrors, UserController.register)
+app.post('/auth/login', loginValidator, handleValidationErrors, UserController.login)
+app.post('/auth/register', registerValidator, handleValidationErrors, UserController.register)
 app.get('/auth/me', checkAuth, UserController.getMe)
 
 
